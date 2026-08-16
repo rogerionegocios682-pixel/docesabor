@@ -1,17 +1,514 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Doce Sabor</title>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:4rem;text-align:center;color:#333}
-    a{color:#0066cc}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doce Sabor - Açaí & Sorveteria</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- React e ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel para compilar JSX no navegador -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
-<body>
-  <h1>Bem-vindo ao Doce Sabor</h1>
-  <p>Site publicado via GitHub Pages.</p>
-  <p><a href="https://github.com/rogerionegocios682-pixel/docesabor">Ver repositório no GitHub</a></p>
+<body class="bg-pink-50 text-gray-800 font-sans antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect } = React;
+
+      function DoceSaborApp() {
+        const [cart, setCart] = useState({});
+        const [isCartOpen, setIsCartOpen] = useState(false);
+        const [paymentMethod, setPaymentMethod] = useState('PIX');
+        const [changeFor, setChangeFor] = useState('');
+        
+        const [clientName, setClientName] = useState('');
+        const [cep, setCep] = useState('');
+        const [street, setStreet] = useState('');
+        const [neighborhood, setNeighborhood] = useState('');
+        const [city, setCity] = useState('');
+        const [number, setNumber] = useState('');
+        const [complement, setComplement] = useState('');
+        const [observation, setObservation] = useState('');
+        const [cepLoading, setCepLoading] = useState(false);
+
+        const DELIVERY_FEE = 4.00;
+
+        const menuCategories = [
+          {
+            id: 'acai',
+            name: 'Açaí na Tigela',
+            description: 'Monte seu açaí com frutas, complementos e caldas deliciosas!',
+            items: [
+              {
+                id: 'acai_350',
+                name: 'AÇAI 350 ML',
+                price: 14.90,
+                description: 'AÇAÍ +2 FRUTAS + 2 ACOMPANHAMENTO + 1 CALDA',
+                image: 'https://images.unsplash.com/photo-1590301157890-4810ed352733?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'acai_500',
+                name: 'AÇAI 500 ML',
+                price: 21.90,
+                description: 'AÇAI + 3 FRUTAS + 3 ACOMPANHAMENTO + 1 CALDA',
+                image: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'acai_750',
+                name: 'AÇAI 750 ML',
+                price: 27.90,
+                description: 'AÇAI + 3 FRUTAS + 4 ACOMPANHAMENTO + 1 CALDA',
+                image: 'https://images.unsplash.com/photo-1590080875515-8a3a8dc5735e?auto=format&fit=crop&w=600&q=80'
+              }
+            ]
+          },
+          {
+            id: 'especiais',
+            name: 'ESPECIAIS DA CASA',
+            description: 'Combinações exclusivas e campeãs de sabor do Doce Sabor',
+            items: [
+              {
+                id: 'doce_sabor',
+                name: 'DOCE SABOR',
+                price: 21.90,
+                description: '3 BOLAS DE SORVETE CHOCOLATE + CHANTILLY + MM',
+                image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'morango_feliz',
+                name: 'MORANGO FELIZ',
+                price: 22.90,
+                description: '3 BOLAS DE SORVETE MORANGO + NUTELA + TUBETE',
+                image: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'delicia_tropical',
+                name: 'DELICIA TROPICAL',
+                price: 15.90,
+                description: '2 BOLAS DE SORVETE DE SUA PREFERÊNCIA + SALADA DE FRUTA',
+                image: 'https://images.unsplash.com/photo-1505394033641-40c6ad1178d7?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'cone_especial',
+                name: 'CONE ESPECIAL',
+                price: 17.90,
+                description: 'CASCÃO TRUFADO COM CREME DE AVELA + 2 BOLA DE AÇAI + 1 MORANGO',
+                image: 'https://images.unsplash.com/photo-1545016160-5695843a859e?auto=format&fit=crop&w=600&q=80'
+              }
+            ]
+          },
+          {
+            id: 'sorvetes',
+            name: 'SORVETES',
+            description: 'Sabores: CHOCOLATE/MORANGO/FLOCOS/CREME/COCO/NAPOLITANO/CUPUAÇU/OREO/LIMÃO/MARACUJÁ/NATA GOIABADA',
+            items: [
+              {
+                id: 'sorvete_1',
+                name: '1 BOLA',
+                price: 6.00,
+                description: 'Escolha 1 sabor de sorvete.',
+                image: 'https://images.unsplash.com/photo-1557142046-c705a3adf536?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'sorvete_2',
+                name: '2 BOLA',
+                price: 10.00,
+                description: 'Escolha até 2 sabores de sorvete.',
+                image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?auto=format&fit=crop&w=600&q=80'
+              },
+              {
+                id: 'sorvete_3',
+                name: '3 BOLA',
+                price: 15.00,
+                description: 'Escolha até 3 sabores de sorvete.',
+                image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?auto=format&fit=crop&w=600&q=80'
+              }
+            ]
+          }
+        ];
+
+        useEffect(() => {
+          const cleanCep = cep.replace(/\D/g, '');
+          if (cleanCep.length === 8) {
+            setCepLoading(true);
+            fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+              .then(res => res.json())
+              .then(data => {
+                if (!data.erro) {
+                  if (data.logradouro) setStreet(data.logradouro);
+                  if (data.bairro) setNeighborhood(data.bairro);
+                  if (data.localidade) setCity(data.localidade);
+                }
+                setCepLoading(false);
+              })
+              .catch(() => setCepLoading(false));
+          }
+        }, [cep]);
+
+        useEffect(() => { lucide.createIcons(); }, []);
+
+        const updateQuantity = (item, delta) => {
+          setCart(prev => {
+            const current = prev[item.id] ? prev[item.id].qty : 0;
+            const nextQty = current + delta;
+            
+            if (nextQty <= 0) {
+              const copy = { ...prev };
+              delete copy[item.id];
+              return copy;
+            }
+            
+            return {
+              ...prev,
+              [item.id]: {
+                item,
+                qty: nextQty
+              }
+            };
+          });
+        };
+
+        const totalItemsCount = Object.values(cart).reduce((acc, curr) => acc + curr.qty, 0);
+        const subtotal = Object.values(cart).reduce((acc, curr) => acc + (curr.item.price * curr.qty), 0);
+        const totalGeneral = subtotal > 0 ? subtotal + DELIVERY_FEE : 0;
+
+        const handleCheckoutWhatsApp = (e) => {
+          e.preventDefault();
+          if (!clientName.trim()) {
+            alert('Por favor, informe seu Nome.');
+            return;
+          }
+          if (!street || !number || !neighborhood) {
+            alert('Por favor, preencha o endereço completo de entrega.');
+            return;
+          }
+
+          const itemsList = Object.values(cart)
+            .map(c => `- ${c.qty}x ${c.item.name} (R$ ${(c.item.price * c.qty).toFixed(2)})`)
+            .join('\n');
+
+          let paymentText = paymentMethod;
+          if (paymentMethod === 'Dinheiro' && changeFor) {
+            paymentText += ` (Troco para R$ ${changeFor})`;
+          }
+
+          const addressText = `${street}, nº ${number}${complement ? ' - ' + complement : ''}, ${neighborhood}, ${city} - CEP: ${cep}`;
+
+          const message = `Olá Doce Sabor! Gostaria de fazer o pedido:\n${itemsList}\n\nObservações: ${observation || 'Nenhuma'}\nSubtotal: R$ ${subtotal.toFixed(2)}\nTaxa de Entrega: R$ ${DELIVERY_FEE.toFixed(2)}\nTotal Final: R$ ${totalGeneral.toFixed(2)}\nForma de Pagamento: ${paymentText}\nEndereço para entrega: ${addressText}\nNome do Cliente: ${clientName}`;
+
+          const encodedMessage = encodeURIComponent(message);
+          const whatsappUrl = `https://api.whatsapp.com/send?phone=5581993753501&text=${encodedMessage}`;
+          
+          window.open(whatsappUrl, '_blank');
+        };
+
+        return (
+          <div className="min-h-screen bg-pink-50 text-gray-800 pb-28 font-sans antialiased">
+            <header className="bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 text-white shadow-lg sticky top-0 z-40">
+              <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <img src="logo.png" alt="Doce Sabor" className="w-12 h-12 rounded-full object-cover border-2 border-white" onError={(e)=>{e.target.style.display='none'}} />
+                  <div className="bg-white p-2 rounded-full shadow-md text-pink-500">
+                    <i data-lucide="sparkles" className="w-6 h-6 animate-pulse"></i>
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-extrabold tracking-wide uppercase">Doce Sabor</h1>
+                    <p className="text-xs text-pink-100 font-medium">Açaí & Sorveteria</p>
+                  </div>
+                </div>
+                <div className="bg-pink-600/80 px-3 py-1 rounded-full text-xs font-semibold border border-pink-300/30">
+                  Aberto agora 🍦
+                </div>
+              </div>
+            </header>
+
+            <main className="max-w-md mx-auto px-4 py-6 space-y-8">
+              {menuCategories.map((category) => (
+                <section key={category.id} className="space-y-4">
+                  <div className="border-b-2 border-pink-200 pb-2">
+                    <h2 className="text-xl font-bold text-pink-700">{category.name}</h2>
+                    <p className="text-xs text-gray-500">{category.description}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {category.items.map((item) => {
+                      const currentQty = cart[item.id] ? cart[item.id].qty : 0;
+
+                      return (
+                        <div 
+                          key={item.id} 
+                          className="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col justify-between transition hover:shadow-md"
+                        >
+                          <div className="flex p-3 gap-3">
+                            <img 
+                              src={item.image} 
+                              alt={item.name} 
+                              className="w-24 h-24 object-cover rounded-xl border border-pink-50 flex-shrink-0"
+                            />
+                            <div className="flex-1 flex flex-col justify-between">
+                              <div>
+                                <div className="flex justify-between items-start">
+                                  <h3 className="font-bold text-gray-900 text-sm leading-tight">{item.name}</h3>
+                                  <span className="font-extrabold text-pink-600 text-sm ml-2">
+                                    R$ {item.price.toFixed(2).replace('.', ',')}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="bg-pink-50/60 px-3 py-2 flex items-center justify-between border-t border-pink-100">
+                            <span className="text-xs font-medium text-pink-800">Quantidade:</span>
+                            <div className="flex items-center space-x-3">
+                              <button 
+                                onClick={() => updateQuantity(item, -1)}
+                                disabled={currentQty === 0}
+                                className="w-8 h-8 rounded-full bg-white border border-pink-200 flex items-center justify-center text-pink-600 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm active:scale-95 transition"
+                              >
+                                <i data-lucide="minus" className="w-4 h-4"></i>
+                              </button>
+                              <span className="font-bold text-gray-800 text-sm w-4 text-center">{currentQty}</span>
+                              <button 
+                                onClick={() => updateQuantity(item, 1)}
+                                className="w-8 h-8 rounded-full bg-pink-600 text-white flex items-center justify-center shadow-sm active:scale-95 transition hover:bg-pink-700"
+                              >
+                                <i data-lucide="plus" className="w-4 h-4"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </main>
+
+            {totalItemsCount > 0 && (
+              <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-pink-200 shadow-2xl z-40">
+                <div className="max-w-md mx-auto flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">{totalItemsCount} {totalItemsCount === 1 ? 'item selecionado' : 'itens selecionados'}</p>
+                    <p className="text-lg font-black text-pink-700">R$ {subtotal.toFixed(2).replace('.', ',')}</p>
+                  </div>
+                  <button 
+                    onClick={() => setIsCartOpen(true)}
+                    className="bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg flex items-center space-x-2 active:scale-95 transition hover:brightness-105"
+                  >
+                    <i data-lucide="shopping-bag" className="w-5 h-5"></i>
+                    <span>Ver Carrinho</span>
+                    <i data-lucide="chevron-right" className="w-4 h-4"></i>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {isCartOpen && (
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                <div className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                  
+                  <div className="sticky top-0 bg-white border-b border-gray-100 p-4 flex items-center justify-between z-10">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                      <i data-lucide="shopping-bag" className="w-5 h-5 text-pink-600"></i>
+                      Resumo do Pedido
+                    </h2>
+                    <button 
+                      onClick={() => setIsCartOpen(false)}
+                      className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="p-4 space-y-6">
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Itens Escolhidos</h3>
+                      {Object.values(cart).map(({ item, qty }) => (
+                        <div key={item.id} className="flex justify-between items-center bg-pink-50/50 p-2.5 rounded-xl border border-pink-100">
+                          <div className="flex-1">
+                            <p className="font-bold text-sm text-gray-800">{qty}x {item.name}</p>
+                            <p className="text-xs text-pink-600 font-semibold">R$ {(item.price * qty).toFixed(2).replace('.', ',')}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <button onClick={() => updateQuantity(item, -1)} className="p-1 text-gray-500 hover:text-pink-600"><i data-lucide="minus" className="w-3.5 h-3.5"></i></button>
+                            <span className="text-xs font-bold px-1">{qty}</span>
+                            <button onClick={() => updateQuantity(item, 1)} className="p-1 text-gray-500 hover:text-pink-600"><i data-lucide="plus" className="w-3.5 h-3.5"></i></button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Identificação e Endereço</h3>
+                      
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">Seu Nome Completo *</label>
+                        <input 
+                          type="text" 
+                          value={clientName}
+                          onChange={(e) => setClientName(e.target.value)}
+                          placeholder="Ex: Maria Silva"
+                          className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">CEP *</label>
+                          <input 
+                            type="text" 
+                            value={cep}
+                            onChange={(e) => setCep(e.target.value)}
+                            placeholder="00000-000"
+                            maxLength={9}
+                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          />
+                          {cepLoading && <span className="text-[10px] text-pink-500 font-medium mt-0.5 block">Buscando CEP...</span>}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Cidade</label>
+                          <input 
+                            type="text" 
+                            value={city}
+                            onChange={(e) => setCity(e.target.value)}
+                            placeholder="Sua cidade"
+                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="col-span-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Rua / Logradouro</label>
+                          <input 
+                            type="text" 
+                            value={street}
+                            onChange={(e) => setStreet(e.target.value)}
+                            placeholder="Ex: Rua Principal"
+                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Número *</label>
+                          <input 
+                            type="text" 
+                            value={number}
+                            onChange={(e) => setNumber(e.target.value)}
+                            placeholder="Ex: 123"
+                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Bairro</label>
+                          <input 
+                            type="text" 
+                            value={neighborhood}
+                            onChange={(e) => setNeighborhood(e.target.value)}
+                            placeholder="Seu bairro"
+                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">Complemento</label>
+                          <input 
+                            type="text" 
+                            value={complement}
+                            onChange={(e) => setComplement(e.target.value)}
+                            placeholder="Apto, Bloco, etc."
+                            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Forma de Pagamento</h3>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['PIX', 'Cartão', 'Dinheiro'].map((method) => (
+                          <button
+                            key={method}
+                            type="button"
+                            onClick={() => setPaymentMethod(method)}
+                            className={`py-2 px-3 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition ${
+                              paymentMethod === method 
+                                ? 'border-pink-600 bg-pink-50 text-pink-700 shadow-sm' 
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                            }`}
+                          >
+                            {method === 'PIX' && <i data-lucide="qr-code" className="w-4 h-4 text-pink-600"></i>}
+                            {method === 'Cartão' && <i data-lucide="credit-card" className="w-4 h-4 text-pink-600"></i>}
+                            {method === 'Dinheiro' && <i data-lucide="dollar-sign" className="w-4 h-4 text-pink-600"></i>}
+                            <span>{method}</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      {paymentMethod === 'Dinheiro' && (
+                        <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 space-y-1">
+                          <label className="block text-xs font-semibold text-amber-800">Precisa de troco para quanto?</label>
+                          <input 
+                            type="text" 
+                            value={changeFor}
+                            onChange={(e) => setChangeFor(e.target.value)}
+                            placeholder="Ex: R$ 50,00 (ou deixe em branco)"
+                            className="w-full px-3 py-1.5 text-sm rounded-lg border border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-semibold text-gray-700">Observações do pedido</label>
+                      <textarea 
+                        value={observation}
+                        onChange={(e) => setObservation(e.target.value)}
+                        placeholder="Ex: Retirar cobertura X, caprichar no leite condensado..."
+                        rows={2}
+                        className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none"
+                      />
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-2xl space-y-2 border border-gray-100">
+                      <div className="flex justify-between text-xs text-gray-600">
+                        <span>Subtotal dos itens</span>
+                        <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-gray-600">
+                        <span>Taxa de Entrega</span>
+                        <span>R$ {DELIVERY_FEE.toFixed(2).replace('.', ',')}</span>
+                      </div>
+                      <div className="border-t border-gray-200 pt-2 flex justify-between text-base font-black text-gray-900">
+                        <span>Total Geral</span>
+                        <span className="text-pink-600">R$ {totalGeneral.toFixed(2).replace('.', ',')}</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={handleCheckoutWhatsApp}
+                      className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg flex items-center justify-center space-x-2 active:scale-95 transition"
+                    >
+                      <i data-lucide="check-circle-2" className="w-5 h-5"></i>
+                      <span>Enviar Pedido via WhatsApp</span>
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<DoceSaborApp />);
+    </script>
 </body>
 </html>
